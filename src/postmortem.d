@@ -12,7 +12,8 @@ import std.stdio, std.getopt, std.algorithm, std.format, std.uni, std.conv;
  * Analyse a game;
  */
 
-void analyse(shared Game game, Search *search, Engine engine, const ref search.Option option, const size_t width, std.stdio.File epd) {
+void analyse(shared Game game, Search *search, Engine engine, const ref search.Option option,
+		const size_t width, std.stdio.File epd, const int outputLimit) {
 	Board board = new Board;
 	Moves moves;
 	int [2] score;
@@ -167,6 +168,7 @@ void main(string [] arg) {
 	int nCpu = 1;
 	int width = 120;
 	int ttSize = 256;
+	auto outputLimit = dMax;
 	search.Option option;
 	Moves moves;
 	string gameFile, executable, epdFile;
@@ -176,24 +178,26 @@ void main(string [] arg) {
 	std.stdio.File epd;
 
 	// read arguments
-	getopt(arg, std.getopt.config.caseSensitive, "engine|e", &executable, "movetime|t", &tMax, "depth|d", &dMax, "hash|H", &ttSize,
-		"cpu|c", &nCpu, "width|w", &width, "file|f", &gameFile, "analyse|a", &analyseMode, "epd|o", &epdFile, 
-		 "debug|g", &showDebug, "help|h", &showHelp, "version|v", &showVersion);
+	getopt(arg, std.getopt.config.caseSensitive, "engine|e", &executable, "movetime|t", &tMax,
+		"depth|d", &dMax, "hash|H", &ttSize, "cpu|c", &nCpu, "width|w", &width, "file|f", &gameFile,
+		"analyse|a", &analyseMode, "epd|o", &epdFile, "debug|g", &showDebug, "help|h", &showHelp,
+		"version|v", &showVersion, "output-limit|l", &outputLimit);
 
 	if (showHelp) {
 		writeln("postmortem <options>");
-		writeln("  --engine|-e <engine>    use an external engine executable (default: use embedded amoeba)");
- 		writeln("  --movetime|-t <time>    time alloted to analyze each move (default: infinite)"); 
-		writeln("  --depth|-d <depth>      max depth to analyze each move (default: ", Limits.ply.max, ")");
-		writeln("  --hash|-H <size>        size of the transposition table in Mb (default: 256)");
-		writeln("  --cpu|-c <cpu>          set the number of cpus to use (default: 1)");
-		writeln("  --width|-w <width>      set the width of the printed lines (default: 120)");
-		writeln("  --file[-f <pgn>         name of the game file to analyze");
-		writeln("  --analyse|-a            set UCI_AnalyseMode option to true, if supported");
-		writeln("  --epd|-o <file>         output found errors into this epd file");
-		writeln("  --debug|-g              switch debugging on");
-		writeln("  --help|-h               display this help");
-		writeln("  --version               show version number");
+		writeln("  --engine|-e <engine>      use an external engine executable (default: use embedded amoeba)");
+ 		writeln("  --movetime|-t <time>      time alloted to analyze each move (default: infinite)");
+		writeln("  --depth|-d <depth>        max depth to analyze each move (default: ", Limits.ply.max, ")");
+		writeln("  --hash|-H <size>          size of the transposition table in Mb (default: 256)");
+		writeln("  --cpu|-c <cpu>            set the number of cpus to use (default: 1)");
+		writeln("  --width|-w <width>        set the width of the printed lines (default: 120)");
+		writeln("  --file[-f <pgn>           name of the game file to analyze");
+		writeln("  --analyse|-a              set UCI_AnalyseMode option to true, if supported");
+		writeln("  --epd|-o <file>           output found errors into this epd file");
+		writeln("  --output-limit|-l <depth> limit the output to <depth> plys (default: ", Limits.ply.max, ")");
+		writeln("  --debug|-g                switch debugging on");
+		writeln("  --help|-h                 display this help");
+		writeln("  --version                 show version number");
 		return;
 	}
 	if (showVersion) {
@@ -226,7 +230,7 @@ void main(string [] arg) {
 	if (epdFile.length > 0) epd.open(epdFile, "w");
 
 	foreach(game; base.games) {
-		analyse(game, search, engine, option, width, epd);		
+		analyse(game, search, engine, option, width, epd, outputLimit);
 	}
 
 	if (engine) engine.end();

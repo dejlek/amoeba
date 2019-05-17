@@ -120,6 +120,7 @@ class Uci {
 
 	/* setoption command */
 	void setoption(string line) {
+		write("[" ~ line ~ "]\n");
 		const string option = findBetween(line.chomp(), "name", "value").strip().toLower();
 		findSkip(line, "value");
 		string value = line.strip().toLower();
